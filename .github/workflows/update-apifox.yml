@@ -25,6 +25,10 @@ jobs:
         uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
         with:
           persist-credentials: false
+      - name: Set up Ruby
+        uses: ruby/setup-ruby@b3aaceaef7e0ee231b499e7b5f49c03fc1d32199 # v1
+        with:
+          ruby-version: '3.4'
       - name: Set up Node.js
         uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6
         with:
@@ -39,4 +43,4 @@ jobs:
       - name: Check npm and open an update PR
         env:
           GH_TOKEN: ${{ github.token }}
-        run: python3 scripts/update_apifox.py
+        run: ruby scripts/update_apifox.rb
