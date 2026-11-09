@@ -10,7 +10,7 @@ class ApifoxCli < Formula
   def install
     system "npm", "install", *std_npm_args, "--omit=dev"
     bin.mkpath
-    (bin/"apifox").write_env_script libexec/"bin/apifox", PATH: "#{Formula["node@24"].opt_bin}:$PATH"
+    (bin/"apifox").write_env_script libexec/"bin/apifox", PATH: "#{formula_opt_bin("node@24")}:$PATH"
   end
 
   test do

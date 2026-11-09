@@ -1,18 +1,14 @@
-# Zhiwei Local
+# Homebrew Tap
 
-## How do I install these formulae?
+自用的 Homebrew 软件源。
 
-`brew install zhiwei/local/<formula>`
+| 软件 | 安装命令 |
+| --- | --- |
+| [Apifox CLI](https://apifox.com/apifox-cli/) | `brew install adonsia/tap/apifox-cli` |
 
-Or `brew tap zhiwei/local` and then `brew install <formula>`.
+更新：
 
-Or, in a `brew bundle` `Brewfile`:
-
-```ruby
-tap "zhiwei/local"
-brew "<formula>"
+```sh
+brew update
+brew upgrade
 ```
-
-## Documentation
-
-`brew help`, `man brew` or check [Homebrew's documentation](https://docs.brew.sh).
