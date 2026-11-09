@@ -1,16 +1,15 @@
 class ApifoxCli < Formula
   desc "Official Apifox CLI for API documentation and testing"
   homepage "https://apifox.com/apifox-cli/"
-  url "https://registry.npmjs.org/apifox-cli/-/apifox-cli-2.2.11.tgz"
-  sha256 "4d0dd00f14329b6a2f1a35c693c121cc6da26fe4fa9c357fe870dde8b1e0ac39"
+  url "https://registry.npmjs.org/apifox-cli/-/apifox-cli-2.2.12.tgz"
+  sha256 "7b5866bab0c6d8c882dcafbbfe7da4de827547dec2a6beff1663526baf40cb53"
   license :cannot_represent
-  revision 2
 
   depends_on "node"
 
   resource "npm-shrinkwrap" do
-    url "https://github.com/adonsia/homebrew-tap/releases/download/apifox-cli-2.2.11-1/npm-shrinkwrap.json"
-    sha256 "6da04a791531973c732eefee96c3340c0ab17db950a49b52981dc1b1194a605b"
+    url "https://github.com/adonsia/homebrew-tap/releases/download/apifox-cli-2.2.12/npm-shrinkwrap.json"
+    sha256 "4d5209eaa864f41be2682012333315eda082aa81692d9acde4a3f77b0dce468e"
   end
 
   def install
