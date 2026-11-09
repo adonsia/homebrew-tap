@@ -42,6 +42,7 @@ jobs:
             fi
             brew install --build-from-source "$formula"
             brew test "$formula"
+            brew audit "$formula"
           done
       - name: Audit casks
         if: runner.os == 'macOS'
