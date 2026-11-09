@@ -26,15 +26,6 @@ class ApifoxCli < Formula
     end
   end
 
-  on_linux do
-    depends_on arch: :x86_64
-
-    resource "clidriver" do
-      url "https://public.dhe.ibm.com/ibmdl/export/pub/software/data/db2/drivers/odbc_cli/v12.1.2/linuxx64_odbc_cli.tar.gz"
-      sha256 "2c10efc71a638cd6b07a5b977b6dbe8aa0408e1dca825bea0d2b63318c9bba2f"
-    end
-  end
-
   resource "oracledb-source" do
     url "https://github.com/oracle/node-oracledb/releases/download/v5.5.0/oracledb-src-5.5.0.tgz"
     sha256 "9e114c06180a96db18f2e99588e8c5aae0957a6be2ef1cc5950cd11c953c5b44"
@@ -55,7 +46,12 @@ class ApifoxCli < Formula
     # The registry package includes only Intel macOS binaries, not the source.
     rm_r modules/"oracledb"
     resource("oracledb-source").stage modules/"oracledb"
-    resource("clidriver").stage modules/"ibm_db/installer/clidriver"
+    if OS.mac?
+      resource("clidriver").stage modules/"ibm_db/installer/clidriver"
+    else
+      # IBM still requires libxml2.so.2, unavailable on Ubuntu 26.04.
+      rm_r modules/"ibm_db"
+    end
 
     ENV["PYTHON"] = formula_opt_bin("python@3.14")/"python3.14"
     ENV.append "CFLAGS", "-I#{formula_opt_include("libuv")}"
@@ -71,23 +67,27 @@ class ApifoxCli < Formula
       inreplace "binding.gyp", '"-arch x86_64",', "" if OS.mac? && Hardware::CPU.arm?
       system "node", node_gyp, *args, "--kerberos_use_rtld=false"
     end
-    cd modules/"ibm_db" do
-      ENV["IBM_DB_HOME"] = modules/"ibm_db/installer/clidriver"
-      if OS.mac?
+    if OS.mac?
+      cd modules/"ibm_db" do
+        ENV["IBM_DB_HOME"] = modules/"ibm_db/installer/clidriver"
         libdb2 = modules/"ibm_db/installer/clidriver/lib/libdb2.dylib"
         change_dylib_id libdb2, libdb2.to_s
+        system "node", node_gyp, *args, "--IS_DOWNLOADED=true"
       end
-      system "node", node_gyp, *args, "--IS_DOWNLOADED=true"
     end
 
     (bin/"apifox").write_env_script libexec/"bin/cli.js", PATH: "#{formula_opt_bin("node")}:$PATH"
   end
 
   def caveats
-    <<~EOS
+    output = <<~EOS
       Oracle connections additionally require Oracle Instant Client for your architecture.
       Manage this installation with brew upgrade, rather than apifox update.
     EOS
+    output += <<~EOS if OS.linux?
+      Db2 connections are not included on Linux: IBM's client requires legacy libxml2.so.2.
+    EOS
+    output
   end
 
   test do
@@ -117,7 +117,11 @@ class ApifoxCli < Formula
         }
       }
       assert.equal(load('oracledb').versionString, '5.5.0');
-      assert.equal(typeof load('ibm_db').open, 'function');
+      if (process.platform === 'darwin') {
+        assert.equal(typeof load('ibm_db').open, 'function');
+      } else {
+        assert.throws(() => load.resolve('ibm_db'), { code: 'MODULE_NOT_FOUND' });
+      }
       assert.equal(typeof load('kerberos').initializeClient, 'function');
       assert.equal(typeof load('ssh2').Client, 'function');
     JS
