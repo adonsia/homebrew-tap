@@ -48,8 +48,9 @@ class ApifoxCli < Formula
   def install
     resource("npm-shrinkwrap").stage { buildpath.install "npm-shrinkwrap.json" }
     # Keep lifecycle scripts disabled: build only the reviewed native modules below.
-    system "npm", "install", *std_npm_args, "--omit=dev"
-    modules = libexec/"lib/node_modules/apifox-cli/node_modules"
+    system "npm", "ci", *std_npm_args(prefix: false), "--omit=dev"
+    libexec.install Dir["*"]
+    modules = libexec/"node_modules"
 
     # The registry package includes only Intel macOS binaries, not the source.
     rm_r modules/"oracledb"
@@ -79,7 +80,7 @@ class ApifoxCli < Formula
       system "node", node_gyp, *args, "--IS_DOWNLOADED=true"
     end
 
-    (bin/"apifox").write_env_script libexec/"bin/apifox", PATH: "#{formula_opt_bin("node")}:$PATH"
+    (bin/"apifox").write_env_script libexec/"bin/cli.js", PATH: "#{formula_opt_bin("node")}:$PATH"
   end
 
   def caveats
@@ -103,7 +104,18 @@ class ApifoxCli < Formula
     (testpath/"native.js").write <<~JS
       const assert = require('node:assert/strict');
       const { createRequire } = require('node:module');
-      const load = createRequire('#{libexec}/lib/node_modules/apifox-cli/package.json');
+      const load = createRequire('#{libexec}/package.json');
+      const fs = require('node:fs');
+      const path = require('node:path');
+      const root = '#{libexec}';
+      const lock = load('./npm-shrinkwrap.json');
+      for (const [name, entry] of Object.entries(lock.packages)) {
+        if (!name) continue;
+        const manifest = path.join(root, name, 'package.json');
+        if (fs.existsSync(manifest)) {
+          assert.equal(JSON.parse(fs.readFileSync(manifest)).version, entry.version, name);
+        }
+      }
       assert.equal(load('oracledb').versionString, '5.5.0');
       assert.equal(typeof load('ibm_db').open, 'function');
       assert.equal(typeof load('kerberos').initializeClient, 'function');
